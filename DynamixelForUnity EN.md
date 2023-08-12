@@ -2,16 +2,18 @@
 [TOC]
 
 # 1. Overview
-Dynamixel for Unity is an asset to easily implement Dynamixel motor control apps in Unity.
+DynamixelforUnity (D4U) is an asset to easily implement Dynamixel motor control within in Unity3D. D4U provides numerous methods to interface with Dynamixel servomotors, enabling you to efficiently and easily connect, control, and read data from a variety of Dynamixel servomotors. 
 
-- Automatically load the Control Table of the motor and control multiple models at once 
-- Control Dynamixel Motor with declarative code 
-- Reduce redundant code 
-- Use Dynamixel API compatible classes
+Specificially, D4U focuses on the following feature sets:
+- Automatically load the Control Table of the servomotor 
+-  Enable simultaneous control of multiple servomotor models. 
+- Enable Controlling Dynamixel servomotor with simple declarative code. 
+- Abstracts low level servomotor and provides a number of classes to simplify servomotor controls.
+- Enable advanced functions like, batch control of multiple models and unit conversion.
+- Provide low-level communication and servomotor controls  within Unity3D (when required).
 
-Reduction of redundant code - Use of Dynamixel API compatible classes
 
-Other useful functions such as batch control of multiple models and unit conversion are also included.
+Therefore, users are able to completely focus on writing all robot control code from within Unity3D, using simple code in C# that can easily be integrated with a variety of applications, games, simulations or other experiences and use cases that leverage Unity3D.
 
 ## Supported OS
 - Windows
@@ -30,246 +32,112 @@ Model compatible with DYNAMIXEL Protocol 2.0.
 - P Series
 
 # 2. Installation
-With the Unity project you want to use open, double-click DynamixelForUnity.unitypackage, or drag and drop it into the Project window of the Unity project you want to use.
+With the Unity3D project you want to use, double-click DynamixelForUnity.unitypackage, or drag and drop it into the Project window of the Unity3D project. A pop-up will appear, please choose to improt the package and all its contents to your project. 
 
-Import with all selected. 
+# 3. License Purchase and Activation
 
-# 3. Quick Start (Explanation of Example Scene)
-HatsuMuv/DynamixelForUnity/Example/ExampleScene_x64.unity is a sample GUI application using DynamixelForUnity.
-
-## Screen Explanation
-
-1. enter the USB serial port to which the Dynamixel motor is connected in the Device Name field. Check the port name from the device manager, e.g.) "COM3". 2.
-
-If you know the baud rate of the motor you want to operate, set the Baud Rate in the inspector of DynamixelForUnity beforehand.
-
-:::info
-If you cannot connect to a motor due to different baud rates, etc., scan for all baud rates and connect at the first baud rate at which a motor is found. Note, however, that this process can be very time consuming.
-:::
-
-Automatically connects to Dynamixel motor when Play is pressed.
+A license must be purchased from [HatsuMuv site](https://hatsumuv.myshopify.com/) in order to use D4U.
 
 
-The screen lists the connected Dynamixel motors. The connected baud rate is displayed at the top of the screen.
+After the purcahse, you will recieve a link to a form, where you are required to provide various information, including device ID, which is a unique ID number that is used to link your license to the machine D4U will be used on: 
+![License Registration Form](https://hackmd.io/_uploads/B19vxZZn3.jpg)
 
-The read-only data items at the bottom are constantly updated.
+To generate your device ID and insert it in the above form, click **Get DeviceID for Registration** in your toolbar. It will automatically copy your device ID to your clip board and shows in consle window. Please follow the instructions shown in the screenshot below:
+![Getting Device ID](https://hackmd.io/_uploads/r1W30l-2n.png)
 
-The other items are updated when there is a change in the data.
 
-If the value deviates from the actual value, press the Reflesh button to retrieve the data again.
+After your purchase D4U, you will recieve an SN by email. To use your SN within D4U, please insert your Email and SN in the D4U verificate method or through the Dynamixel For Unity Component in Unity3D UI as shown below: 
 
-## Implementation Explanation
-### D4UExampleController
-#### Start()
+![](https://hackmd.io/_uploads/Skw6tax3n.jpg)
 
-```Csharp!
-private async void Start()
+To check your verify your activation, simply run your scene, and you can check if the activation is correct or not in consle. 
+
+
+
+
+# 4. Quick Start 
+
+Here is a demo that gets and sets the positions of two Dynamixel motors.
+
+## Setting up a new scene
+ 
+1. Open a new scene and drag and drop HatsuMuv/DynamixelForUnity/Prefabs/DynamixelForUnity into the hierarchy window.
+
+![](https://hackmd.io/_uploads/SyBq4DX3n.png)
+
+2. Select **DynamixelForUnity** gameobject in Hierarchy menu
+
+![](https://hackmd.io/_uploads/Skw6tax3n.jpg)
+
+3. In Inspector window, you can find a component called **DynamixelForUnity**. Enter your **Email** and **SN**, and the USB serial port which connected to your Dynamixel motor in the **Device Name** field. (You can find the port name from your **Device manager**, e.g. "COM3"). 
+
+4. (Optional) If you know the baudrate of the motor you want to operate, set the Baud Rate in the inspector of DynamixelForUnity beforehand. If you don't know, leave it blank, D4U SetUp method will scan for you. (Which can be time comsuming)
+
+5. "Click Add Component" Button, and input script name as you like (For this time, "Demo"). Then click "New script".
+
+![](https://hackmd.io/_uploads/rkolrDX32.png)
+
+
+6. Double click on the script called Demo written in gray text and wait for a while. Visual studio will open.
+
+![](https://hackmd.io/_uploads/Bk0wIdNh2.png)
+
+
+## Coding C# script
+
+When Visual Studio opens, write as below. This code prints the current positions of two servo motors to Debug.Log and then sets their goal positions to 1024 each.
+```csharp!
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using HatsuMuv.DynamixelForUnity.x64;
+
+public class Demo : MonoBehaviour
 {
-    NeedWait = true;
+    DynamixelForUnity d4u;
     
-    if (d4u == null)
+    void Start()
     {
-        Debug.LogError("[DynamixelForUnitySample] DynamixelForUnity is not assigned!");
-        return;
+        d4u = GetComponent<DynamixelForUnity>();
+        d4u.ConnectDynamixel();
+        d4u.SetUp();
+       
+        // Set operating mode to Position Control Mode
+        d4u.SyncSetDataGroupMultiModels("OperatingMode", new uint[] { 3, 3 });
+        
+        // Torque enable
+        d4u.SyncSetDataGroupMultiModels("TorqueEnable", new uint[] { 1, 1 });
+        
+        // Get and print present position
+        int[] presentPosition = d4u.SyncGetSignedDataGroupMultiModels("PresentPosition");
+        Debug.Log("PresentPosition: " + string.Join(", ", presentPosition));
+    
+        // Set goal position
+        d4u.SyncSetDataGroupMultiModels("GoalPosition", new uint[] { 1024, 1024 });
+        
     }
-
-    // Varificate your licence here
-    d4u.Varificate(new DevTest.HatsuVarif(licenceFilePath: "some", userID: "some", email: "example@sample.com", phonenumber: "123456789"));
-
-    cancellationTokenSource = new CancellationTokenSource();
-
-    var connectResult = await Task.Run(() => InitializeDynamixel(cancellationTokenSource.Token));
-    if (connectResult) StartMotorMetrics();
-
-    NeedWait = false;
+    
+    void OnApplicationQuit()
+    {
+        // Torque disable
+        uint[] torqueEnableCommand = new uint[] { 0, 0 };
+        d4u.SyncSetDataGroupMultiModels("TorqueEnable", torqueEnableCommand);    
+    }
 }
+
 ```
 
-The NeedWait property is externally referenced to play the screen load animation.
+## Execution
+Return to the Unity screen and click the Play button.
 
-DynamixelForUnity d4u expects to be assigned by Inspector.
-
-License authentication using the d4u.Validate method.
-
-The cancellationTokenSource is created to interrupt asynchronous tasks.
-
-Connect to the motor and execute the initialization method InitializeDynamixel asynchronously and wait for it.
+The position of the servomotor will be printed on the console.
+![](https://hackmd.io/_uploads/B1eOQU_423.png)
 
 
-Once the Dynamixel motor is connected by InitializeDynamixel, the StartMotorMetricsm method starts a loop that continuously measures the state of the motor.
 
----
-#### InitializeDynamixel(CancellationToken ct)
-```Csharp!
-private async Task<bool> InitializeDynamixel(CancellationToken ct)
-{
-    if (d4u == null)
-    {
-        Debug.LogError("[DynamixelForUnitySample] DynamixelForUnity is not assigned!");
-        return false;
-    }
+# 5. Script Reference
 
-    if (!d4u.ConnectStatus)
-    {
-        var connectResult = d4u.ConnectDynamixel();
-        if (!connectResult)
-        {
-            Debug.LogError("[DynamixelForUnitySample] Dynamixel is not connected. Connect it first.");
-            return false;
-        }
-
-        await d4u.SetUpAsync(cancellationToken:ct);
-    }
-
-    motors = new List<DynamixelMotor>();
-    ids = d4u.IDsForUse;
-
-    if (ids.Length == 0) return false;
-
-    await GetAllMotorProperty(ct);
-    return true;
-}
-```
-
-The d4u.ConnectDynamixel method connects to the motor. You can also specify a port name and baud rate as arguments. In this case, the values entered by Inspector are ignored.
-
-The SetUpAsync method calls two methods to scan the motor and hold the IDs found at once.
-
-1. Call the ScanInBaudRateAsync method to scan for Dynamixel motors at the specified port name and baud rate. If the motor is not found, it reruns the scan at all baud rates and sets the port to the baud rate at which the motor was first found.
-2. Retains the ID and model number of the motor found by calling the SetIDsForUse method.
-:::info
-By having DynamixelForUnity retain the motor ID and model number, it is possible to send commands using only the data field names, and some functions can be written to be concise when sending commands to all motors.
-:::
-
-In creating an ExampleScene, the DynamixelMotor class is implemented when handling motor information. Add properties according to the application you are creating.
-
-Get all motor properties by the GetAllMotorProperty method and create a DynamixelMotor instance.
-
----
-#### GetAllMotorProperty(CancellationToken ct)
-```Csharp!
-private async Task GetAllMotorProperty(CancellationToken ct)
-{
-    OperatingMode[] operatingModes = 
-        await Task.Run(() =>
-            d4u.SyncGetDataGroupMultiModels("OperatingMode")
-                .Select(d => (OperatingMode)d)
-                .ToArray(),
-            ct);
-
-    float[] homingOffsets = await Task.Run(() => d4u.SyncGetSignedDataGroupMultiModels("HomingOffset").ToActualNumber(UNIT.POSITION).ToFloatArray(), ct);
-    ...
-
-    for (int i = 0; i < ids.Length; i++)
-    {
-        DynamixelMotor m;
-        if (motors.Count < i + 1) 
-        {
-            m = new DynamixelMotor(ids[i]);
-            motors.Add(m);
-        }
-        else
-        {
-            m = motors[i];
-        }
-        m.OperatingMode = operatingModes[i];
-        m.HomingOffset = homingOffsets[i];
-        ...
-    }
-}
-```
-
-Each and every property of the DynamixelMotor class is obtained by the method SyncGetSignedDataGroupMultiModels. One property is explained using an example. 
-```cs    !
-float[] homingOffsets = 
-    await Task.Run(
-        () => d4u.SyncGetSignedDataGroupMultiModels("HomingOffset")
-            .ToActualNumber(UNIT.POSITION)
-            .ToFloatArray(),
-        ct
-    );
-```
-
-The line that initializes homingOffsets has a line break for clarity.
-
-The second line, Task.Run method, executes the function of the first argument asynchronously in a separate thread.
-
-From the third line, it is the function you want to execute in a separate thread.
-
-d4u.SyncGetSignedDataGroupMultiModels("HomingOffset") retrieves the value of the "HomingOffset" data field for all motors stored in DynamixelForUnity.
-
-ToActualNumber(UNIT.POSITION) applies units to the raw data obtained from the SyncGetSignedDataGroupMultiModels.
-
-ToFloatArray() converts a double[] to a float[].
-
-:::info
-MotorMetrics is a similar method that strips some data from GetAllMotorProperty. 
-:::
-
----
-#### StartMotorMetrics()
-#### MotorMetricsLoop(CancellationToken ct)
-#### StopMotorMetrics()
-```cs    !
-private void StartMotorMetrics()
-{
-    if (!d4u.ConnectStatus)
-        return;
-
-    cancellationTokenSource = cancellationTokenSource ?? new CancellationTokenSource();
-    var cancellationToken = cancellationTokenSource.Token;
-    metricsLoop = MotorMetricsLoop(cancellationToken);
-}
-
-private async Task MotorMetricsLoop(CancellationToken ct)
-{
-    while (true)
-    {
-        if (ct.IsCancellationRequested)
-            return;
-
-        Debug.Log("[SampleController] Metrics");
-        try
-        {
-            await MotorMetrics(ct);
-        }
-        catch (OperationCanceledException)
-        {
-            Debug.Log("[SampleController] Metrics canceled");
-            return;
-        }
-        catch (Exception e)
-        {
-            Debug.LogError(e);
-            return;
-        }
-    }
-}
-
-private async Task StopMotorMetrics()
-{
-    if (cancellationTokenSource != null && !cancellationTokenSource.IsCancellationRequested)
-    {
-        cancellationTokenSource.Cancel();
-        cancellationTokenSource.Dispose();
-        cancellationTokenSource = null;
-
-        if(metricsLoop != null)
-            await metricsLoop;
-    }
-}
-```
-MotorMetricsLoop continues to call MotorMetrics until it is canceled by CancellationToken. StopMotorMetrics cancels MotorMetrics and waits for the process to finish.
-
-### D4UExampleUI
-Generate UI elements. Generates a panel for each motor from D4UExampleController and updates those data.
-
-### D4UExampleUIElement
-It directly controls the fields in each panel; when it receives input from a UI element, it passes the value to D4UExampleContorller. 
-
-# 4. Script Reference
-
-Select a namespace from the following according to your CPU configuration.
+Select a namespace from the following according to your system configuration.
 
 ```
 HatsuMuv.DynamixelForUnity.x64
@@ -279,13 +147,49 @@ HatsuMuv.DynamixelForUnity.x86
 
 ## DynamixelForUnity
 
-DynamixelForUnity is a class provided to control Dynamixel motors with declarative code. It manages with one component per port, implementing IControlTableUser. 
+DynamixelForUnity is a class provided to control Dynamixel motors with declarative program.
 
-Flow of Use
+*Declarative programming: Describe what you want, not how to do it. For more details, please search for 'Declarative Programming'.*
+
+One DynamixelForUnity component manage one port. If you want to control multiple ports simultaneously, please add as many components as the number of ports.
+
+DynamixelForUnity is implementing IControlTableUser. 
+
+Flow of Use:
 1. Open a port with ConnectDynamixel.
 2. (Optional) Keep the motor ID and model number used in SetUp or SetIDsForUse. This procedure allows for concise writing when sending instructions using only data field names or when sending instructions to all motors.
 3. Control the motor with methods such as SetData, etc. Note that data in the EEPROM area such as OperatingMode can only be written when the torque is OFF.
-5. At the end of the oparation, perform a termination procedure such as torque disable in the OnApplicationQuit or OnDisable. If the DynamixelForUnity is connected at the time when OnDestroy is called, it will call DisconnectDynamixel.
+5. At the end of the oparation, perform a termination procedure such as torque disable in the **OnApplicationQuit** or **OnDisable**. If the DynamixelForUnity is connected at the time when OnDestroy is called, it will call DisconnectDynamixel.
+
+Here is Example.
+```C#
+using HatsuMuv.DynamixelForUnity.x64;
+
+public class ExampleClass : MonoBehaviour
+{
+    DynamixelForUnity d4u;
+
+    void Start() {
+        d4u = GetComponent<DynamxielForUnity>();
+
+        // If the SN code and email address are not set in the inspector, this code is necessary.
+        // d4u.Verificate();
+        
+        d4u.ConnectDynamixel();
+        d4u.SetUp();
+        
+       // something you want to do.
+       d4u.SetData("TorqueEnable", 1, 1);
+    }
+    
+    void OnApplicationQuit() {
+       
+       // Termination procedure
+       d4u.SetData("TorqueEnable", 0, 1)
+    }
+}
+```
+
 
 ### Constant
 
@@ -311,8 +215,6 @@ Flow of Use
 | Varification  | True/False value indicating whether the license is authenticated. Read-only. |
 
 
-
-
 ### Verificate
 - Declaration
 `public bool Verificate(HatsuVerif verif)`
@@ -320,17 +222,23 @@ Flow of Use
 - Argument
     <dl>
         <dt>HatsuVerif verif</dt>
-        <dd>Verification object. Created from the license file path and verification information.</dd>
+        <dd>Verification class object. Created from the license file path and verification information.</dd>
     </dl>
 
 - Returns
     License validity.
 
 - Description
-:::info
-Please run this method and validate your license before use. 
-:::
+This function is used for validating your license, which will be automatically called (Awake function) if you put DynamxielForUnity in your gameobject as component from beginning. If you new a instant after pressing play, you will need to run this method to validate your license before you start to use D4U's functions. 
 
+----
+
+- Declaration
+`public bool Verificate(string userEmail, string userSN, bool forceRenew = false)
+`
+
+- Returns
+    License validity.
 
 
 ### ConnectDynamixel
@@ -623,7 +531,7 @@ public void FactoryResetDynamixel(DynamixelFactoryResetMode mode, byte[] ids = n
     </dl>
 
 - Description
-Reset the Dynamixel motor to the factory defaults.
+Reset the Dynamixel servomotor to the factory defaults.
 
 
 ### SetBaudRate
@@ -642,7 +550,7 @@ public bool SetBaudRate(BaudRate baudRate)
 Returns true if successful, false otherwise.
 
 - Description
-Set the baud rate of the port.
+Set the baudrate of the port.
 
 
 
@@ -670,7 +578,7 @@ Returns true if successful, false otherwise.
 - Description
 Writes data to the Dynamixel motor with the specified ID. 
 :::info
-Check the Contorol Table from the e-Manual of each Dynamitel motor for the address and length of the data field.
+Check the Contorol Table from the [ROBOTIS e-Manual](https://emanual.robotis.com/) of each Dynamixel servomotor for the address and length of the data field.
 :::
 
 ---
@@ -693,7 +601,7 @@ public bool SetData(ControlTableAddressInfo addressInfo, uint data, byte id)
 Returns true if successful, false otherwise. 
 
 - Description
-SetData(ushort ADDR, ushort LEN, uint data, byte id) is used to write data to the Dynamixel motor with the specified ID. If the data field is read-only, it is not executed.
+SetData(ushort ADDR, ushort LEN, uint data, byte id) is used to write data to the Dynamixel servomotor with the specified ID. If the data field is read-only (e.g. present position), this method will not execute the command.
 
 ---
 - Declaration
@@ -704,7 +612,9 @@ public bool SetData(string dataName, uint data, byte id)
 - Argument
     <dl>
         <dt>string dataName</dt>
-        <dd>Control Table data field name.</dd>
+        <dd>Servomotor control Table data field name. Please refer to using the control table section for more information.
+    
+    </dd>
         <dt>uint data</dt>
         <dd>Data to be written.</dd>
         <dt>byte id</dt>
@@ -715,11 +625,20 @@ public bool SetData(string dataName, uint data, byte id)
 Returns true if successful, false otherwise. 
 
 - Description
-SetData(ushort ADDR, ushort LEN, uint data, byte id) is used to write data to the Dynamixel motor with the specified ID. If the data field is read-only, it is not executed.
+SetData(ushort ADDR, ushort LEN, uint data, byte id) is used to write data to the Dynamixel servomotor with the specified ID. If the data field is read-only, it is not executed.
+
+
+
+```Csharp!
+        d4u.SyncGetSignedDataGroupMultiModels("GoalPosition").ToActualNumber(UNIT.POSITION).ToFloatArray(), ct);
+
+
+```
 
 :::info
 The ID and model number must be retained by the SetUp or SetIDsForUse method to be used.
 :::
+
 
 
 ### SetSignedData
@@ -756,7 +675,7 @@ Data read. Returns 0 if an error occurs.
 Reads the data of the Dynamixel motor with the specified ID.
 
 :::info
-Check the Contorol Table from the e-Manual of each Dynamitel motor for the address and length of the data field.
+Check the Contorol Table from the [ROBOTIS e-Manual](https://emanual.robotis.com/) of each Dynamixel servomotor for the address and length of the data field.
 :::
 
 ---
@@ -778,7 +697,7 @@ public uint GetData(ControlTableAddressInfo addressInfo, byte id)
 Data read. Returns 0 if an error occurs. 
 
 - Description
-GetData(ushort ADDR, ushort LEN, byte id) is used to read the data of the Dynamixel motor with the specified ID.
+GetData(ushort ADDR, ushort LEN, byte id) is used to read data of a servomotor by specifying it's ID.
 
 ---
 - Declaration
@@ -798,10 +717,10 @@ public uint GetData(string dataName, byte id)
 Data read. Returns 0 if an error occurs.
 
 - Description
-GetData(ushort ADDR, ushort LEN, byte id) is used to read the data of the Dynamixel motor with the specified ID.
+GetData(ushort ADDR, ushort LEN, byte id) is used to read  data from a servomotor by specifying it's ID.
 
 :::info
-The ID and model number must be retained by the SetUp or SetIDsForUse method to be used.
+The ID and model number must be created in using either the SetUp method or SetIDsForUse method to be used.
 :::
 
 
@@ -844,14 +763,14 @@ public bool SyncSetDataGroup(ControlTableAddressInfo addressInfo, uint[] data, b
 Returns true if successful, false otherwise. 
 
 - Description
-Writes data to multiple motors simultaneously using GroupSyncWrite. 
+Writes data to multiple servomotors simultaneously using GroupSyncWrite. 
 
 ### SyncSetDataGroupMultiModels
 - Declaration
 `public bool SyncSetDataGroupMultiModels(string dataName, uint[] data, byte[] ids = null)`
 
 - Description
-Writes data to multiple motors at the same time using GroupSyncWrite. Send data to different addresses as long as the data field names are the same. In that case, call SyncSetDataGroup for each unique address; see Description of SyncSetDataGroup.
+Writes data to multiple servomotors at the same time using GroupSyncWrite method. If the item names on the ControlTable are the same, the data will be sent to different addresses. In that case, call SyncSetDataGroup for each unique address; see Description of SyncSetDataGroup.
 
 :::info
 The ID and model number must be retained by the SetUp or SetIDsForUse method to be used.
@@ -865,7 +784,7 @@ The ID and model number must be retained by the SetUp or SetIDsForUse method to 
 `
 
 - Description
-Writes signed data to multiple motors simultaneously using GroupSyncWrite; see SyncSetDataGroup Description.
+Writes signed data to multiple servomotors simultaneously using GroupSyncWrite; see SyncSetDataGroup Description.
 
 ### SyncSetSignedDataGroupMultiModels
 - Declaration
@@ -873,7 +792,7 @@ Writes signed data to multiple motors simultaneously using GroupSyncWrite; see S
 `
 
 - Description
-Write signed data to multiple motors simultaneously using GroupSyncWrite, see Description of SyncSetDataGroupMultiModels.
+Write signed data to multiple motors simultaneously using GroupSyncWrite method, see Description of SyncSetDataGroupMultiModels.
 
 :::info
 The ID and model number must be retained by the SetUp or SetIDsForUse method to be used.
@@ -898,10 +817,10 @@ The ID and model number must be retained by the SetUp or SetIDsForUse method to 
     </dl>
 
 - Returns
-Data array read.
+uint array containing the read after executing the SyncGetDataGroup.
 
 - Description
-Read data from multiple motors simultaneously using GroupSyncRead.
+Read data from multiple servomotors simultaneously using GroupSyncRead.
 
 
 ### SyncGetDataGroupMultiModels
@@ -910,7 +829,7 @@ Read data from multiple motors simultaneously using GroupSyncRead.
 `
 
 - Description
-Read data to multiple motors simultaneously using GroupSyncRead. Send data to different addresses as long as the data field names are identical. In that case, call SyncSetDataGroup for each unique address; see Description of SyncGetDataGroup.
+Simultaneously read data from multiple servomotors using GroupSyncRead method. If the item names on the ControlTable are the same, the data will be sent to different addresses. In that case, call SyncSetDataGroup for each unique address; see Description of SyncGetDataGroup.
 :::info
 The ID and model number must be retained by the SetUp or SetIDsForUse method to be used.
 :::
@@ -947,7 +866,7 @@ The ID and model number must be retained by the SetUp or SetIDsForUse method to 
 BulkWritePacket object.
 
 - Description
-Returns a BulkWritePacket object for writing data to multiple motors at once using GroupBulkWrite.
+Returns a BulkWritePacket object for writing data to multiple servomotors at once using GroupBulkWrite. 
 
 :::info
 GroupBulkWrite is described in a method chain mediated by BulkWritePacket.
@@ -969,23 +888,91 @@ Returns a BulkReadPacket object for reading data in batches to multiple motors u
 GroupBulkRead is described in a method chain mediated by BulkReadPacket.
 :::
 
+## Using the Control Table
+We created a text file to represent the control table of each Dynamixel servomotor. The control tables map each property name to the corresponding register number within for  servomotor model.
+
+The control tables correspond to the servomotor control tables found in [ROBOTIS e-Manual](https://emanual.robotis.com/).
 
 
-## BulkWritePacket
-Object for writing data to multiple motors at once using GroupBulkWrite, described by a method chain mediated by BulkWritePacket.
+Please check the control table data under D4U HatsuMuv/DynamixelForUnity/Resources/ControlTables/ and find the corresponding motor, as shown in the screenshot below:
+![ControlTable](https://hackmd.io/_uploads/r1lCvg-n3.jpg)
 
-Example:
+The control tables can be used as parameters in a variety of methods in D4U, where you can pass the parameter name as a string to control or get feedback from various servomotors, as shown in the example below
+
 ```Csharp!
-dynamixelForUnity.BulkSetDataGroup()
-    .AddParam(addressInfo1, idArray1, data1)
-    .AddParam(addressInfo2, idArray2, data2)
-    .Send();
+// you may pass a control table parameter to read in the below method, where the control table parameter corresponds to the string representation of the register you need to set/read.  
+
+// This example uses wet a group of data through sync method
+SyncGetDataGroupMultiModels("GoalPosition");
+
 ```
 
-### Property
+## Using BulkWritePacket
+
+Executing bulk write includes the following steps:
+1- Initiate struct to hold bulk write parameters.
+2- Add parameters to the struct.
+3- Send the bulkwrite command.
+4- (Options) read result of executing the command.
+
+The BulkWritePacket object is used to execute the above four steps by settings its properties and calling its methods as highlighting explained below.
+
+
+
+#### Step 1. Initiate Struct
+To initiate the struct to hold the parameters for the writing packet, you must first declare and initialize the relevant BulkWritePacket objects as follows:
+
+```Csharp!
+// bulk write packet
+BulkWritePacket writePacket = dynamixelForUnity.BulkSetDataGroup();
+```
+#### Step 2. Adding Parameters
+Upon creating the BulkWritePacket object, the data to be written should be added to the created object as parameters. This can be done as follows:
+
+```Csharp!
+writePacket.AddParam(addressInfo1, idArray1, data1);
+// you may add as many parameters as needed
+writePacket.AddParam(addressInfo2, idArray2, data2);
+writePacket.AddParam(addressInfo3, idArray3, data3);
+```
+#### Step 3. Sending BulkWrite Command
+Upon adding the parameters, the command can be executed by calling the BulkWritePacket object's Send() method, as shown below:
+
+```Csharp!
+writePacket.Send();
+```
+
+#### Step 4. (Optional) Checking results of BulkWrite Command Execution
+You may optionally check the status of the command, whether it was successfully executed or not. You can check the property "AllSuccess" which is set to true if the command is successfully executed.
+
+```Csharp!
+if(writePacket.AllSuccess)
+    Debug.Log("Successful");
+```
+Alternatively, you can directly place the BulkPacket object in an 'if' conditional to check if the command was successful.
+
+```Csh    !
+if(writePacket)
+    Debug.Log("Successful");
+```
+
+
+Overall, you may execute the four steps in one line efficiently as follows:
+Example:
+```Csharp!
+if(dynamixelForUnity
+    .BulkSetDataGroup()
+    .AddParam(addressInfo1, idArray1, data1)
+    .AddParam(addressInfo2, idArray2, data2)
+    .AddParam(addressInfo3, idArray3, data3)
+    .Send())
+    Debug.Log("Successful");
+```
+
+### Properties
 |Name|Description|
 |--|--|
-|IDParamPair|Dictionary<byte, ParamInfo> type. Holds information about each ID and data field to be written; ParamInfo holds address, length, success or failure, and data to be sent. Read-only.|
+|IDParamPair|It is of type Dictionary<byte, ParamInfo>. This holds parameters for each ID. ParamInfo contains address, length, communication success, and data to be written. Read-only.|
 |AllSuccess|A boolean value indicating whether communication of all parameters was successful. Read only.|
 |HasSent|A boolean value indicating whether the command was sent. Read only.|
 
@@ -1004,11 +991,11 @@ dynamixelForUnity.BulkSetDataGroup()
         <dt>uint[] data</dt>
         <dd>Data to be written.</dd>
         <dt>byte[] id</dt>
-        <dd>Target ID; if null is specified, the ID held in DynamixelForUnity is targeted.</dd>
+        <dd>Target ID; if null is specified, the IDs held in DynamixelForUnity is targeted.</dd>
     </dl>
 
 - Returns
-Myself.
+Itself.
 
 - Description
 The information and data of the data field to be written are stored in IDParamPair.
@@ -1027,7 +1014,7 @@ The information and data of the data field to be written are stored in IDParamPa
     </dl>
 
 - Returns
-Myself.
+Itself.
 
 - Description
 AddParam(ushort ADDR, ushort LEN, uint[] data, byte[] ids = null) is used to store the information and data of the data field to be written in IDParamPair. If the data field is read-only, it is not executed.
@@ -1057,10 +1044,10 @@ Stores information and signed data of the data field to be written in IDParamPai
     </dl>
 
 - Returns
-Myself.
+Itself.
 
 - Description
-Send GroupBulkWrite command to Dynamxiel motor based on IDParamPair. 
+Send GroupBulkWrite command to servomotors based on IDParamPair. 
 
 ### ResetStatus
 - Declaration
@@ -1070,22 +1057,84 @@ Send GroupBulkWrite command to Dynamxiel motor based on IDParamPair.
 - Description
 Reset communication results and transmission flags. The data to be written is not deleted. 
 
-## BulkReadPacket
-Object for reading data from multiple motors at once using GroupBulkRead, used in a method chain mediated by BulkReadPacket. 
+## Using BulkReadPacket
+Executing bulk read includes the following steps:
+1- Initiate struct to hold bulkread parameters.
+2- Add parameters to the struct.
+3- Send the bulkread command.
+4- (Options) read result of executing the command.
+5- Reading returned values from the servomotors.
 
+
+The BulkReadPacket object is used to execute the above four steps by settings its properties and calling its methods as highlighting explained below.
+
+
+
+
+#### Step 1. Initiate Struct
+To initiate the struct to hold the parameters for the reading packet, you must first declare and initialize the relevant BulkdReadPacket object as follows:
+
+```Csharp!
+// bulk read packet
+BulkReadPacket readPacket = dynamixelForUnity.BulkGetDataGroup();
+```
+#### Step 2. Adding Parameters
+Upon creating the BulkReadPacket object, the data to be read should be added to the created object as parameters. This can be done as follows:
+
+```Csharp!
+readPacket.AddParam(addressInfo1, idArray1);
+// you may add as many parameters as needed
+readPacket.AddParam(addressInfo2, idArray2);
+readPacket.AddParam(addressInfo3, idArray3);
+```
+#### Step 3. Sending BulkRead Command
+Upon adding the parameters, the command can be executed by calling the BulkReadPacket object's Send() method, as shown below:
+
+```Csharp!
+readPacket.Send();
+```
+
+#### Step 4. (Optional) Checking results of BulkRead Command Execution
+You may optionally check the status of the command, whether it was successfully executed or not. You can check the property "AllSuccess" which is set to true if the command is successfully executed.
+
+```Csharp!
+if(readPacket.AllSuccess)
+    Debug.Log("Successful");
+```
+Alternatively, you can directly place the BulkPacket object in an 'if' conditional to check if the command was successful.
+
+```Csh    !
+if(readPacket)
+    Debug.Log("Successful");
+```
+#### Step 5. Reading returned values from the servomotors.
+To read the data that was read from the servomotors after executing the bulkread command, you can use the method GetData() of the BulkReadPacket as follows:
+
+```csharp!
+// create a uint array to store the results read from the servomotors
+uint[] data = readPacket.GetData();
+```
+
+Overall, you may execute the five steps and print out the results as follows:
 Example:
 ```Csharp!
-int[] data = dynamixelForUnity.BulkGetDataGroup()
+if(var readPacket = dynamixelForUnity
+    .BulkGetDataGroup()
     .AddParam(addressInfo1, idArray1)
     .AddParam(addressInfo2, idArray2)
-    .Send()
-    .GetSignedData();
+    .AddParam(addressInfo3, idArray3)
+    .Send())
+{
+    Debug.Log("Successful");
+    uint[] data = readPacket.GetData();
+    Debug.Log("Data: " + string.Join(", ", data));
+}
 ```
 
 ### Property
 |Name|Description|
 |--|--|
-|IDParamPair|Dictionary<byte, ParamInfo> type. ParamInfo has address, length, success or read data. Read only.|
+|IDParamPair|It is of type Dictionary<byte, ParamInfo>. This holds parameters for each ID. ParamInfo contains address, length, communication success, and data from servomotor. Read only.|
 |AllSuccess|A boolean value indicating whether communication of all parameters was successful. Read only.|
 |HasSent|A boolean value indicating whether the command was sent. Read only.|
 
@@ -1106,7 +1155,7 @@ int[] data = dynamixelForUnity.BulkGetDataGroup()
     </dl>
 
 - Returns
-Myself.
+Itself.
 
 - Description
 The information and data of the data field to be read are stored in IDParamPair.
@@ -1123,7 +1172,7 @@ The information and data of the data field to be read are stored in IDParamPair.
     </dl>
 
 - Returns
-Myself.
+Itself.
 
 - Description
 AddParam(ushort ADDR, ushort LEN, byte[] ids = null) is used to store information about the data field to be read in IDParamPair.
@@ -1139,7 +1188,7 @@ AddParam(ushort ADDR, ushort LEN, byte[] ids = null) is used to store informatio
     </dl>
 
 - Returns
-Myself.
+Itself.
 
 - Description
 Send GroupBulkRead command to Dynamxiel motor based on IDParamPair.
@@ -1182,11 +1231,10 @@ Retrieve the signed data array that was read.
 - Declaration
 `public void ResetStatus()`
 
-
 - Description
 Reset communication results and transmission flags. The read data is also deleted. 
 
-## ParamResult
+## ParamInfo
 Class representing data fields in BulkWritePacket and BulkReadPacket. 
 
 ### Variable
@@ -1195,7 +1243,7 @@ Class representing data fields in BulkWritePacket and BulkReadPacket.
 |address|Data address.|
 |length|Length of data.|
 |isSuccess|Whether the communication was successful or not.|
-|data|In BulkWritePacket, data to be written; in BulkReadPacket, data to be read.|
+|data|In case of BulkWritePacket, data to be written; in case of BulkReadPacket, data to be read.|
 
 
 
@@ -1205,7 +1253,13 @@ A class that stores the Control Table for each motor; the Control Table is initi
 
 Text files of Control Table for DynamxielForUnity compatible models are located in Assets/HatsuMuv/DynamixelForUnity/Resources/ControlTables. See ControlTableInjectorFromResources for usage examples.
 
-ControlTables is the ControlTable of the motor to be used during initialization. The first line describes the model name and model number with ":" in between. The other lines describe the data name, address, length, and access. For access, specify "R" for read-only and "RW" for write-enabled. Lines beginning with "#" or "//" are ignored as comments.
+ControlTables is the ControlTable of the motor to be used during initialization. The first line describes the model name and model number with ":" in between. The other lines describe the itemName, address, length, and access.
+
+ItemName is derived from the item name in the ControlTable on Dynamixel's model page, with spaces removed.
+
+If the access is read-only, specify 'R'; if writable, specify 'RW'.
+
+Lines beginning with "#" or "//" are ignored as comments.
 ```=
 <ModelName>:<ModelName>
 <ItemName>, <Address>, <Length>, <Access>
@@ -1217,8 +1271,7 @@ ControlTables is the ControlTable of the motor to be used during initialization.
 
 | Name | Description |
 | -------- | -------- |
-| ModelNames | Dictionary<int, string> type that represents the model name corresponding to the model number.|
-
+| ModelNames | This is of type Dictionary<int, string>. It records the correspondence between model numbers and model names from the read text data.|
 
 
 ### GetAddrssInfo
@@ -1314,7 +1367,7 @@ Returns an array of model numbers that have data fields with the specified data 
 
 
 ## ControlTableAddressInfo
-A structure representing information on data fields in the Control Table. 
+A structure representing information about data fields in the Control Table. 
 
 ### Variable
 | Name|Description|
@@ -1324,7 +1377,7 @@ A structure representing information on data fields in the Control Table.
 |readWrite|True if writable, false if read-only.|
 
 ## IControlTableUser
-Interface to inject control tables, implemented by DynamixelForUnity. 
+An Interface to inject control tables, implemented by DynamixelForUnity. 
 
 ### SetControlTables
 - Declaration
@@ -1334,3 +1387,234 @@ Interface to inject control tables, implemented by DynamixelForUnity.
 ## Core
 
 Dynamixel SDK compatible class. Put a HatsuVerif object in the constructor and create an instance.
+
+# 6. Explanation of Example Scene
+A sample scene is located within: HatsuMuv/DynamixelForUnity/Example/ExampleScene_x64.unity 
+
+This scene has a sample graphical-user interface (GUI) application using that uses DynamixelForUnity to open a com port, scan for servomotors, connect to servomotors, control servomotors and read various information from servomotors that are all displayed on the GUI.
+
+## Screen Explanation
+![](https://hackmd.io/_uploads/Sylmk0x2n.jpg)
+1. Select **DynamixelForUnity** gameobject in Hierarchy menu
+
+![](https://hackmd.io/_uploads/Skw6tax3n.jpg)
+2. In Inspector window, you can find a component called **DynamixelForUnity**. Enter your **Email** and **SN**, and the USB serial port which connected to your Dynamixel motor in the **Device Name** field. (You can find the port name from your **Device manager**, e.g. "COM3"). 
+
+3. (Optional) If you know the baudrate of the motor you want to operate, set the Baud Rate in the inspector of DynamixelForUnity beforehand. If you don't know, leave it blank, D4U will scan for you. (Which can be time comsuming)
+
+
+After setup DynamxielForUnity components, click play, Dynamixel4Unity will automatically attempt to open the designated port and connect to available servomotors.
+
+![](https://hackmd.io/_uploads/BkQmC6g2n.png)
+
+The screen lists the connected Dynamixel motors. The connected baud rate is displayed at the top of the screen.
+
+The read-only data items at the bottom are constantly updated (such as present position) .
+
+The other items are updated when there is a change in the inserted data (for example, to set a new servomotor position).
+
+**Hint: If values differ from the actual value, try press the Refresh button to retrieve the data again.**
+
+## Implementation Explanation
+### D4UExampleController
+#### Start()
+
+```Csharp!
+private async void Start()
+{
+    NeedWait = true;
+    
+    if (d4u == null)
+    {
+        Debug.LogError("[DynamixelForUnitySample] DynamixelForUnity is not assigned!");
+        return;
+    }
+
+    cancellationTokenSource = new CancellationTokenSource();
+
+    var connectResult = await Task.Run(() => InitializeDynamixel(cancellationTokenSource.Token));
+    if (connectResult) StartMotorMetrics();
+
+    NeedWait = false;
+}
+```
+
+The NeedWait property is externally referenced to play the screen load animation.
+
+DynamixelForUnity (d4u) is expected to be assigned by Inspector.
+
+The cancellationTokenSource is created to interrupt asynchronous tasks.
+
+Connect to the motor and execute the initialization method InitializeDynamixel asynchronously and wait for it.
+
+
+Once the Dynamixel motor is connected by InitializeDynamixel, the StartMotorMetricsm method starts a loop that continuously measures the state of the motor.
+
+---
+#### InitializeDynamixel(CancellationToken ct)
+```Csharp!
+private async Task<bool> InitializeDynamixel(CancellationToken ct)
+{
+    if (d4u == null)
+    {
+        Debug.LogError("[DynamixelForUnitySample] DynamixelForUnity is not assigned!");
+        return false;
+    }
+
+    if (!d4u.ConnectStatus)
+    {
+        var connectResult = d4u.ConnectDynamixel();
+        if (!connectResult)
+        {
+            Debug.LogError("[DynamixelForUnitySample] Dynamixel is not connected. Connect it first.");
+            return false;
+        }
+
+        await d4u.SetUpAsync(cancellationToken:ct);
+    }
+
+    motors = new List<DynamixelMotor>();
+    ids = d4u.IDsForUse;
+
+    if (ids.Length == 0) return false;
+
+    await GetAllMotorProperty(ct);
+    return true;
+}
+```
+
+The d4u.ConnectDynamixel method connects to the servomotor. You can also specify a port name and baudrate as arguments. In this case, the values entered in the Unity3D Inspector are ignored.
+
+The SetUpAsync method calls two methods to scan the motor and hold the IDs found at once.
+
+1. Call the ScanInBaudRateAsync method to scan for Dynamixel servomotors at the specified port name and baudrate. If the motor is not found, it will start a scan in all baudrates and sets the port to the baudrate at which the motor is first found.
+2. Retains the ID and model number of the motor found by calling the SetIDsForUse method.
+
+:::info
+DynamixelForUnity retain servomotor IDs and model numbers, it is possible to send commands using only the data field names, and functions can be written to be concise when sending commands to all the servomotors.
+:::
+
+Next, we use get all servomotor properties by calling GetAllMotorProperty method and create a DynamixelMotor instance.
+
+---
+#### GetAllMotorProperty(CancellationToken ct)
+```Csharp!
+private async Task GetAllMotorProperty(CancellationToken ct)
+{
+    OperatingMode[] operatingModes = 
+        await Task.Run(() =>
+            d4u.SyncGetDataGroupMultiModels("OperatingMode")
+                .Select(d => (OperatingMode)d)
+                .ToArray(),
+            ct);
+
+    float[] homingOffsets = await Task.Run(() => d4u.SyncGetSignedDataGroupMultiModels("HomingOffset").ToActualNumber(UNIT.POSITION).ToFloatArray(), ct);
+    ...
+
+    for (int i = 0; i < ids.Length; i++)
+    {
+        DynamixelMotor m;
+        if (motors.Count < i + 1) 
+        {
+            m = new DynamixelMotor(ids[i]);
+            motors.Add(m);
+        }
+        else
+        {
+            m = motors[i];
+        }
+        m.OperatingMode = operatingModes[i];
+        m.HomingOffset = homingOffsets[i];
+        ...
+    }
+}
+```
+
+Each and every property of the DynamixelMotor class is obtained by the method SyncGetSignedDataGroupMultiModels. One property is explained using an example. 
+```cs    !
+float[] homingOffsets = 
+    await Task.Run(
+        () => d4u.SyncGetSignedDataGroupMultiModels("HomingOffset")
+            .ToActualNumber(UNIT.POSITION)
+            .ToFloatArray(),
+        ct
+    );
+```
+
+The line that initializes homingOffsets has a line break for clarity.
+
+The second line, Task.Run method, executes the function of the first argument asynchronously in a separate thread.
+
+From the third line, it is the function you want to execute in a separate thread.
+
+d4u.SyncGetSignedDataGroupMultiModels("HomingOffset") retrieves the value of the "HomingOffset" data field for all motors stored in DynamixelForUnity.
+
+ToActualNumber(UNIT.POSITION) applies units to the raw data obtained from the SyncGetSignedDataGroupMultiModels.
+
+ToFloatArray() converts a double[] to a float[].
+
+:::info
+MotorMetrics is a similar method that strips some data from GetAllMotorProperty. 
+:::
+
+---
+#### StartMotorMetrics()
+#### MotorMetricsLoop(CancellationToken ct)
+#### StopMotorMetrics()
+```cs    !
+private void StartMotorMetrics()
+{
+    if (!d4u.ConnectStatus)
+        return;
+
+    cancellationTokenSource = cancellationTokenSource ?? new CancellationTokenSource();
+    var cancellationToken = cancellationTokenSource.Token;
+    metricsLoop = MotorMetricsLoop(cancellationToken);
+}
+
+private async Task MotorMetricsLoop(CancellationToken ct)
+{
+    while (true)
+    {
+        if (ct.IsCancellationRequested)
+            return;
+
+        Debug.Log("[SampleController] Metrics");
+        try
+        {
+            await MotorMetrics(ct);
+        }
+        catch (OperationCanceledException)
+        {
+            Debug.Log("[SampleController] Metrics canceled");
+            return;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+            return;
+        }
+    }
+}
+
+private async Task StopMotorMetrics()
+{
+    if (cancellationTokenSource != null && !cancellationTokenSource.IsCancellationRequested)
+    {
+        cancellationTokenSource.Cancel();
+        cancellationTokenSource.Dispose();
+        cancellationTokenSource = null;
+
+        if(metricsLoop != null)
+            await metricsLoop;
+    }
+}
+```
+MotorMetricsLoop continues to call MotorMetrics until it is canceled by CancellationToken. StopMotorMetrics cancels MotorMetrics and waits for the process to finish.
+
+### D4UExampleUI
+Generate UI elements. Generates a panel for each motor from D4UExampleController and updates those data.
+
+### D4UExampleUIElement
+It directly controls the fields in each panel; when it receives input from a UI element, it passes the value to D4UExampleContorller. 
+
